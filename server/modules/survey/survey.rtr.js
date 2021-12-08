@@ -8,17 +8,20 @@ const router = express.Router()
 router.param('surveyId', surveyCtrl.surveyByID)
 
 router.use(authCtrl.requireSignin);
-router.use((req, res, next) => {
+
+0 && router.use((req, res, next) => {
   console.log(req.url);
   next();
 });
 
+
 router.route('').post(surveyCtrl.create)
-router.route('/feed').get(surveyCtrl.list)
-router.route('/:surveyId').get(surveyCtrl.create)
-router.route('/:surveyId').post(surveyCtrl.answer)
-router.route('/:surveyId').put(surveyCtrl.update)
-router.route('/:surveyId').delete(surveyCtrl.remove)
+// router.route('/feed').get(surveyCtrl.list)
+router.route('/:surveyId')
+  .post(surveyCtrl.answer)
+  .get(surveyCtrl.read)
+// router.route('/:surveyId').put(surveyCtrl.update)
+// router.route('/:surveyId').delete(surveyCtrl.remove)
 
 module.exports = router;
 

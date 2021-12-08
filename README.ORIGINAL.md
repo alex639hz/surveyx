@@ -85,3 +85,10 @@ https://medium.com/bb-tutorials-and-thoughts/how-to-write-unit-tests-in-nodejs-w
 
 https://github.com/visionmedia/supertest/blob/master/test/supertest.js
 
+express
+handle rejections - h
+ttps://codefibershq.com/blog/handling-promise-rejections-in-expressjs-nodejs-with-ease
+
+https://www.toptal.com/express-js/routes-js-promises-error-handling
+
+

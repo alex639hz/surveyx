@@ -2,12 +2,15 @@ const request = require("supertest");
 const app = require("../server/express");
 const config = require("../server/config/config");
 const { User } = require('../server/modules/user/user.model');
-const { Keyword } = require('../server/modules/keyword/keyword.model');
-const { Community } = require('../server/modules/community/community.model');
-const { Post } = require('../server/modules/post/post.model');
-const { Account } = require('../server/modules/tx/account.model');
+const {
+  SurveyCollection: Survey,
+  PendingVotesCollection
+} = require('../server/modules/survey/survey.model');
 const mongoose = require('mongoose');
+const surveyContent = require('./survey.json');
 
+// console.log(surveyContent)
+// 
 /** user object:
 {
   credentials: { password: 'aaaaaa', email: 'a@a.a' },
@@ -24,29 +27,15 @@ const user = {
   }
 }
 
+// let surveys = [
+//   createSurvey("A", "US", 100, "word? word1 word2 word3"),
+//   createSurvey("A", "IL", 90, "word? word? word? word?"),
+// ]
 
-let communityTitle = "A"
-let keywords = [
-  'word1',
-  'word2',
-]
-let postsA = [
-  generatePost("A", "US", 100, "word? word1 word2 word3"),
-  generatePost("A", "IL", 90, "word? word? word? word?"),
-  generatePost("A", "US", 80, "word? word? word? word?"),
-  generatePost("A", "IL", 70, "word? word? word? word?"),
-  generatePost("A", "IL", 60, "word? word? word? word?"),
-  generatePost("A", "US", 100, "word? word? word? word?"),
-  generatePost("A", "US", 98, "word? word? word? word?"),
-  // generatePost("B", "US", 90, "word? word? word? word?"),
-  // generatePost("B", "IL", 10, "word? word? word? word?"),
-]
-
-describe("Test the root path", () => {
+describe("Test survey module", () => {
 
   beforeAll(async () => {
     app.set('port', process.env.PORT || '3000');
-    // mongoose.pluralize(null);
     mongoose.Promise = global.Promise
     mongoose.connect(config.mongoUris[0],
       {
@@ -62,10 +51,8 @@ describe("Test the root path", () => {
     config.mongooseInit(mongoose, config.mongoUris[0])
 
     await User.deleteMany();
-    await Keyword.deleteMany();
-    await Community.deleteMany();
-    await Post.deleteMany();
-    await Account.deleteMany();
+    await Survey.deleteMany();
+    await PendingVotesCollection.deleteMany();
 
   });
 
@@ -74,195 +61,97 @@ describe("Test the root path", () => {
     // server.close(done);
   });
 
-  test("signup", async () => {
-    const response = await request(app)
-      .post("/api/user")
-      .send(user.credentials);
+  describe("authorization", () => {
 
-    expect(response.statusCode).toBe(201);
-    user._id = response.body._id
-  });
-
-  test("signin", async () => {
-    const response = await request(app)
-      .post("/api/auth/signin")
-      .send(user.credentials);
-
-    expect(response.statusCode).toBe(200);
-    user.token = response.body.token
-    // user.country = response.body.country
-  });
-
-  test("faile without Bearer token", async () => {
-    const response = await request(app)
-      .get("/api/user")
-
-    expect(response.statusCode).toBe(401);
-
-  });
-
-  test("pass with bearer token", async () => {
-    const url = "/api/auth/secured-api-example"
-    const response = await request(app)
-      .get(url)
-      .set('Authorization', 'Bearer ' + user.token)
-
-    expect(response.statusCode).toBe(200);
-  });
-
-
-  test("add survey", async () => {
-    const response = await request(app)
-      .post("/api/survey")
-      .set('Authorization', 'Bearer ' + user.token)
-      .send({
-        surveyId: "survey uid"
-      })
-
-    printIfError(response)
-    expect(response.statusCode).toBe(201);
-
-  });
-
-
-  test("add keywords", async () => {
-    const response = await request(app)
-      .post("/api/keyword")
-      .set('Authorization', 'Bearer ' + user.token)
-      .send(keywords)
-
-    printIfError(response)
-    expect(response.statusCode).toBe(201);
-
-  });
-
-  test("list keywords", async () => {
-    const response = await request(app)
-      .get("/api/keyword")
-      .set('Authorization', 'Bearer ' + user.token)
-
-    printIfError(response)
-    expect(response.statusCode).toBe(200);
-
-  });
-
-  test("create community A", async () => {
-    const url = "/api/community";
-    const response = await request(app)
-      .post(url)
-      .set('Authorization', 'Bearer ' + user.token)
-      .send({
-        title: "A"
-      })
-
-    printIfError(response)
-    expect(response.statusCode).toBe(201);
-  });
-
-  test("create community B", async () => {
-    const url = "/api/community";
-    const response = await request(app)
-      .post(url)
-      .set('Authorization', 'Bearer ' + user.token)
-      .send({ title: 'B' })
-
-    printIfError(response)
-    expect(response.statusCode).toBe(201);
-  });
-
-  test("list communities", async () => {
-    const url = "/api/community";
-
-    const response = await request(app)
-      .get(url)
-      .set('Authorization', 'Bearer ' + user.token)
-
-    printIfError(response)
-    expect(response.statusCode).toBe(200);
-  });
-
-  test("deny post without membership", async () => {
-    const url = `/api/post/${communityTitle}`;
-
-    const response = await request(app)
-      .post(url)
-      .set('Authorization', 'Bearer ' + user.token)
-      .send()
-
-    expect(response.statusCode).toBe(400);
-  });
-
-  test("request community A membership", async () => {
-    const url = `/api/community/member-request/${communityTitle}`;
-
-    const response = await request(app)
-      .patch(url)
-      .set('Authorization', 'Bearer ' + user.token)
-      .send()
-
-    printIfError(response)
-    expect(response.statusCode).toBe(200);
-  });
-
-  test("approve community A membership", async () => {
-    const url = `/api/community/member-approve/${communityTitle}`;
-
-    const response = await request(app)
-      .patch(url)
-      .set('Authorization', 'Bearer ' + user.token)
-      .send({ pendingMember: user._id })
-
-    printIfError(response)
-    expect(response.statusCode).toBe(200);
-  });
-
-  //generate posts collection
-  postsA.map((post, idx) => {
-    let postId = ""
-
-    test("create a post", async () => {
-      const url = `/api/post`;
+    test("signup", async () => {
       const response = await request(app)
-        .post(url)
-        .set('Authorization', 'Bearer ' + user.token)
-        .send({ post })
+        .post("/api/user")
+        .send(user.credentials);
+
+      expect(response.statusCode).toBe(201);
+      user._id = response.body._id
+    });
+
+    test("signin", async () => {
+      const response = await request(app)
+        .post("/api/auth/signin")
+        .send(user.credentials);
+
+      expect(response.statusCode).toBe(200);
+      user.token = 'Bearer ' + response.body.token
+      // user.country = response.body.country
+    });
+
+    test("faile without Bearer token", async () => {
+      const response = await request(app)
+        .get("/api/user")
+
+      expect(response.statusCode).toBe(401);
+
+    });
+
+    test("pass with bearer token", async () => {
+      const url = "/api/auth/secured-api-example"
+      const response = await request(app)
+        .get(url)
+        .set('Authorization', user.token)
+
+      expect(response.statusCode).toBe(200);
+    });
+  })
+
+  describe("Test survey logic", () => {
+    const surveyTitle = "my-survey-title";
+    let surveyId = "";
+
+    test("create survey", async () => {
+      const response = await request(app)
+        .post("/api/survey")
+        .set('Authorization', user.token)
+        .send({
+          surveyId: surveyTitle,
+          content: surveyContent,
+
+        })
 
       printIfError(response)
       expect(response.statusCode).toBe(201);
-      expect(response.body.post.status).toBe("pending");
+      surveyId = response.body.surveyId;
+      // console.log("[444]===>", surveyId)
 
-      postId = response.body.post._id
-    })
+    });
 
-    if (idx % 2) {
-      test("approve a post", async () => {
-        const url = `/api/post/${postId}/approve`;
+    test("fetch survey", async () => {
+      const response = await request(app)
+        .get(`/api/survey/${surveyId}`)
+        .set('Authorization', user.token)
 
-        const response = await request(app)
-          .patch(url)
-          .set('Authorization', 'Bearer ' + user.token)
-          .send({ postId })
 
-        printIfError(response)
-        expect(response.statusCode).toBe(200);
-      })
-    }
+      printIfError(response)
+      expect(response.statusCode).toBe(200);
+      // console.log(response.body);
+    });
 
-  })
+    test("answer survey", async () => {
+      const response = await request(app)
+        .post(`/api/survey/${surveyId}`)
+        .set('Authorization', user.token)
+        .send({
+          surveyId: `${surveyId}`,
+          userId: `${surveyId}`,
+          questionId: `${surveyId}`,
+          answerType: 'text',
+          answerContent: 'my answer content',
+        })
+      printIfError(response)
+      expect(response.statusCode).toBe(201);
+      // console.log(response.body);
+    });
 
-  test("Get Feed", async () => {
-    const url = `/api/post`
 
-    const response = await request(app)
-      .get(url)
-      .set('Authorization', 'Bearer ' + user.token)
-
-    // console.log(response.body)
-
-    expect(response.statusCode).toBe(200);
   });
 
-});
+})
 
 function printIfError(response, label = '') {
   if (response.statusCode >= 400) {
@@ -278,20 +167,7 @@ function randomSuffix(prefix) {
   return '' + prefix + Math.floor(Math.random() * 10000)
 }
 
-/** NOTE: scoreCalculator function is the example of 
- * how to calculate a score based on the post parameters and the rest of the posts 
- * 
- * @param {*} likesCounter the post likes count
- * @param {*} maxLikesCounter the post with highest likes count in the system
- * @param {*} postLength the post length
- * @param {*} maxPostLength the length of the 
- * @returns 
- */
-function scoreCalculator(likesCounter, maxLikesCounter, postLength, maxPostLength) {
-  return (likesCounter / maxLikesCounter) * 80 + (1 - postLength / maxPostLength) * 20
-}
-
-function generatePost(community = '', country = '', score, body = '') {
+const createSurvey = (community = '', country = '', score, body = '') => {
   return {
     title: randomSuffix("title-"),
     community,

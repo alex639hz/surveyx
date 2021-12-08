@@ -1,0 +1,53 @@
+{
+  "title": "my survey main title",
+  "description": "my survey main description ",
+  "pages": [
+    {
+      "name": "page1",
+      "elements": [
+        {
+          "type": "text",
+          "name": "question1",
+          "title": "text input"
+        },
+        {
+          "type": "boolean",
+          "name": "question9",
+          "title": "boolean"
+        },
+        {
+          "type": "dropdown",
+          "name": "question2",
+          "title": "dropdown",
+          "choices": [
+            "item1",
+            "item2",
+            "item3"
+          ]
+        },
+        {
+          "type": "checkbox",
+          "name": "question3",
+          "title": "multi choice",
+          "choices": [
+            "item1",
+            "item2",
+            "item3"
+          ]
+        },
+        {
+          "type": "radiogroup",
+          "name": "question4",
+          "title": "single choice",
+          "choices": [
+            "item1",
+            "item2",
+            "item3"
+          ]
+        }
+      ],
+      "title": "my survey title ",
+      "description": "my survey description"
+    }
+  ]
+}
