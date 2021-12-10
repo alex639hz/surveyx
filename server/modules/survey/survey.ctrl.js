@@ -2,10 +2,13 @@ const extend = require('lodash/extend');
 const {
   PendingVotesCollection,
   SurveyCollection,
-  createAnswerCollection
+  createAnswerCollection,
+  QuestionsCollection
 } = require('./survey.model');
 const errorHandler = require('../../helpers/dbErrorHandler');
 const { verify } = require('jsonwebtoken');
+
+const config = require("../../config/config");
 
 const create = async (req, res) => {
   const survey = new SurveyCollection(req.body)
@@ -22,6 +25,40 @@ const create = async (req, res) => {
   }
 }
 
+const createQuestion = async (req, res) => {
+  const question = new QuestionsCollection(req.body)
+  try {
+    await question.save()
+    return res.status(201).json({
+      id: question._id,
+      message: "Successfully created question!",
+    })
+  } catch (err) {
+    return res.status(400).json({
+      error: errorHandler.getErrorMessage(err)
+    })
+  }
+}
+
+/** inject survey document into req.survey
+ * 
+ */
+const questionByID = async (req, res, next, id) => {
+  try {
+    let question = await QuestionsCollection.findById(id).lean()
+    if (!question)
+      return res.status('400').json({
+        error: "question not found"
+      })
+    req.question = { ...question }
+    next()
+    return { ...req.question }
+  } catch (err) {
+    return res.status('400').json({
+      error: "Could not retrieve question"
+    })
+  }
+}
 /** inject survey document into req.survey
  * 
  */
@@ -122,10 +159,16 @@ const answer = async (req, res) => {
 
   try {
     await answerDocument.save()
+
+    answerDocument.answers.map((answer) => {
+      return verifyAnswer(answer);
+    })
+
     return res.status(201).json({
       // _id: survey._id,
       message: `Successfully answered`,
       answerDocument,
+      // results,
     })
   } catch (err) {
     return res.status(400).json({
@@ -138,10 +181,27 @@ function verifyParticipation(filters = [], userProfile) {
   return true;
 }
 
+const verifyAnswer = (answer) => {
+  const temp = {};
+  // return true
+
+  switch (answer.question.config.meta.event) {
+    case config.QUESTION_EVENTS.LESS_THEN_SETPOINT:
+      if (+answer.answer < answer.question.config.meta.setpoint)
+        console.log("EVENT-1 fired");
+
+    case config.QUESTION_EVENTS.SELECT_FROM_STACK:
+
+    default:
+  }
+}
+
 module.exports = {
   answer,
   create,
+  createQuestion,
   surveyByID,
+  questionByID,
   surveyByTitle,
   read,
   list,
