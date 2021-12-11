@@ -1,9 +1,6 @@
 const extend = require('lodash/extend');
 const {
-  PendingVotesCollection,
-  SurveyCollection,
-  createAnswerCollection,
-  QuestionsCollection
+  ProgramCollection
 } = require('./program.model');
 const errorHandler = require('../../helpers/dbErrorHandler');
 const { verify } = require('jsonwebtoken');
@@ -11,12 +8,12 @@ const { verify } = require('jsonwebtoken');
 const config = require("../../config/config");
 
 const create = async (req, res) => {
-  const survey = new SurveyCollection(req.body)
+  const program = new ProgramCollection(req.body)
   try {
-    await survey.save()
+    await program.save()
     return res.status(201).json({
-      surveyId: survey._id,
-      message: "Successfully signed up!",
+      id: program._id,
+      message: "Successfully created program",
     })
   } catch (err) {
     return res.status(400).json({
@@ -40,68 +37,69 @@ const createQuestion = async (req, res) => {
   }
 }
 
-/** inject survey document into req.survey
+/** inject program document into req.program
  * 
  */
-const questionByID = async (req, res, next, id) => {
+const programByID = async (req, res, next, id) => {
   try {
-    let question = await QuestionsCollection.findById(id).lean()
-    if (!question)
+    let program = await ProgramCollection.findById(id).lean()
+    if (!program)
       return res.status('400').json({
-        error: "question not found"
+        error: "program not found"
       })
-    req.question = { ...question }
+    req.program = { ...program }
     next()
-    return { ...req.question }
+    return { ...req.program }
   } catch (err) {
     return res.status('400').json({
-      error: "Could not retrieve question"
+      error: "Could not retrieve program"
     })
   }
 }
-/** inject survey document into req.survey
+/** inject program document into req.program
  * 
  */
 const surveyByID = async (req, res, next, id) => {
   try {
-    let survey = await SurveyCollection.findById(id).lean()
-    if (!survey)
+    let program = await SurveyCollection.findById(id).lean()
+    if (!program)
       return res.status('400').json({
-        error: "survey not found"
+        error: "program not found"
       })
-    req.survey = { ...survey }
+    req.program = { ...program }
     next()
-    return { ...req.survey }
+    return { ...req.program }
   } catch (err) {
     return res.status('400').json({
-      error: "Could not retrieve survey"
+      error: "Could not retrieve program"
     })
   }
 }
-/** query survey by title and inject the document into req.survey
+/** query program by title and inject the document into req.program
  * 
  */
 const surveyByTitle = async (req, res, next, surveyId) => {
   try {
-    let survey = await SurveyCollection.findOne({ surveyId }).lean()
-    if (!survey)
+    let program = await SurveyCollection.findOne({ surveyId }).lean()
+    if (!program)
       return res.status('400').json({
-        error: "survey not found by title"
+        error: "program not found by title"
       })
-    req.survey = { ...survey }
+    req.program = { ...program }
     next()
-    return { ...req.survey } // TODO is this required?
+    return { ...req.program } // TODO is this required?
   } catch (err) {
     return res.status('400').json({
-      error: "Could not retrieve survey by title"
+      error: "Could not retrieve program by title"
     })
   }
 }
 
 const read = (req, res) => {
   // req.profile.hashed_password = undefined
-  // req.profile.salt = undefined
-  return res.json(req.survey)
+  // req.profile.salt = undefined  return res.json(req.program)
+  return res.json(req.program)
+
 }
 
 const list = async (req, res) => {
@@ -117,13 +115,13 @@ const list = async (req, res) => {
 
 const update = async (req, res) => {
   try {
-    let survey = req.profile
-    survey = extend(survey, req.body)
-    survey.updated = Date.now()
-    await survey.save()
-    survey.hashed_password = undefined
-    survey.salt = undefined
-    res.json(survey)
+    let program = req.profile
+    program = extend(program, req.body)
+    program.updated = Date.now()
+    await program.save()
+    program.hashed_password = undefined
+    program.salt = undefined
+    res.json(program)
   } catch (err) {
     return res.status(400).json({
       error: errorHandler.getErrorMessage(err)
@@ -133,8 +131,8 @@ const update = async (req, res) => {
 
 const remove = async (req, res) => {
   try {
-    let survey = req.profile
-    let deletedsurvey = await survey.remove()
+    let program = req.profile
+    let deletedsurvey = await program.remove()
     deletedsurvey.hashed_password = undefined
     deletedsurvey.salt = undefined
     res.json(deletedsurvey)
@@ -148,7 +146,7 @@ const remove = async (req, res) => {
 
 const answer = async (req, res) => {
 
-  if (0 && !verifyParticipation(survey, req.user)) {
+  if (0 && !verifyParticipation(program, req.user)) {
     return res.status(400).json({
       error: errorHandler.getErrorMessage(err)
     })
@@ -165,7 +163,7 @@ const answer = async (req, res) => {
     })
 
     return res.status(201).json({
-      // _id: survey._id,
+      // _id: program._id,
       message: `Successfully answered`,
       answerDocument,
       // results,
@@ -199,11 +197,11 @@ const verifyAnswer = (answer) => {
 }
 
 module.exports = {
-  answer,
   create,
+  programByID,
+  answer,
   createQuestion,
   surveyByID,
-  questionByID,
   surveyByTitle,
   read,
   list,

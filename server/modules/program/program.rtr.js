@@ -1,26 +1,20 @@
 var express = require('express');
 // var surveyCtrl = require('./user.ctrl');
-var surveyCtrl = require('./survey.ctrl');
+// var surveyCtrl = require('./survey.ctrl');
 var authCtrl = require('../auth/auth.ctrl');
+var programCtrl = require('./program.ctrl');
 
 const router = express.Router()
 
-router.param('surveyId', surveyCtrl.surveyByID)
-router.param('questionId', surveyCtrl.questionByID)
+// router.param('surveyId', surveyCtrl.surveyByID)
+router.param('programId', programCtrl.programByID)
 
 router.use(authCtrl.requireSignin);
 
-0 && router.use((req, res, next) => {
-  console.log(req.url);
-  next();
-});
-
-
 router.route('')
-  .post(surveyCtrl.create)
+  .post(programCtrl.create)
 
-router.route('/:surveyId')
-  .post(surveyCtrl.answer)
-  .get(surveyCtrl.read)
+router.route('/:programId')
+  .get(programCtrl.read)
 
 module.exports = router;

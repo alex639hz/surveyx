@@ -15,6 +15,7 @@ const communityRouter = require('./modules/community/community.rtr');
 const wordRouter = require('./modules/keyword/keywords.rtr');
 const accountRouter = require('./modules/tx/account.rtr');
 const surveyRouter = require('./modules/survey/survey.rtr');
+const programRouter = require('./modules/program/program.rtr');
 
 const swaggerUi = require("swagger-ui-express");
 
@@ -32,6 +33,7 @@ app.use(express.static(path.join(__dirname, 'public')))
 // mount routes
 app.use('/api/user', userRouter);
 app.use('/api/survey', surveyRouter);
+app.use('/api/program', programRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/post', postRouter);
 app.use('/api/account', accountRouter);

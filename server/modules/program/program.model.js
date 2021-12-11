@@ -1,24 +1,10 @@
 const mongoose = require('mongoose');
 const crypto = require('crypto');
 const { STEP_TYPES } = require('../../config/config');
-
-const AnswerSchema = new mongoose.Schema({
-
-  surveyId: {   // title of survey
-    type: String,
-    // type: ObjectId,
-    // unique: true,
-    // index: true,
-  },
-
-  userId: {     //  owner of survey
-    type: String,
-    // unique: true,
-    // index: true,
-  },
-  answers: [mongoose.SchemaTypes.Mixed]
-
-}, { timestamps: true })
+const {
+  SurveySchema,
+  QuestionSchema,
+} = require('../survey/survey.model');
 
 
 const StepSchema = new mongoose.Schema({
@@ -28,6 +14,10 @@ const StepSchema = new mongoose.Schema({
     enum: [...Object.keys(STEP_TYPES)]
   },
   text: { type: String },
+  complete: {
+    type: Boolean,
+    default: false
+  },
   config: {},
 
 }, { timestamps: true })
@@ -41,13 +31,15 @@ const ProgramSchema = new mongoose.Schema({
     // index: true,
   },
 
-  ownerId: String,
+  userId: { type: mongoose.Schema.ObjectId, ref: 'User' },
+
 
   config: mongoose.SchemaTypes.Mixed,
+
   steps: [StepSchema],
 
 }, { timestamps: true })
 
 module.exports = {
-  ProgramsCollection: mongoose.model('Programs', ProgramSchema),
+  ProgramCollection: mongoose.model('Program', ProgramSchema),
 }
