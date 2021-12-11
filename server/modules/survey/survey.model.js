@@ -17,80 +17,37 @@ const AnswerSchema = new mongoose.Schema({
     // unique: true,
     // index: true,
   },
-
-  // index: {
-  //   type: Number,
-  //   unique: true,
-  //   index: true,
-  // },
-
-  questionId: { type: mongoose.Schema.ObjectId, ref: 'Question' },
-
-  answerType: { // question content view - how the question should be displayed to user
-    type: String,
-    enum: [
-      'text',
-      'number',
-      'option',
-      'options',
-      'email',
-    ],
-    default: 'text'
-  },
-
-  answerContent: {}
+  answers: [mongoose.SchemaTypes.Mixed]
 
 }, { timestamps: true })
 
 
 const QuestionSchema = new mongoose.Schema({
 
-  pageIndex: 0,
-
-  bodyType: { // question content view - how the question should be displayed to user
-    type: String,
-    enum: [
-      'texts',
-      'images',
-      'videos',
-    ],
-    default: 'texts'
-  },
-
-  bodyContent: {}, // question content to display to user
-
-  answerType: { // answers type - how the question should be displayed to user
-    type: String,
-    enum: [
-      'numeric',
-      'text',
-      'single-option',
-      'multi-option',
-    ],
-    default: 'texts'
-  },
-
-  answersContent: {}, //answers content to display to user
+  type: { type: String },
+  text: { type: String },
+  config: mongoose.SchemaTypes.Mixed,
 
 }, { timestamps: true })
 
 
 const SurveySchema = new mongoose.Schema({
 
-  surveyTitle: {
+  title: {
     type: String,
-    unique: true,
-    index: true,
+    // unique: true,
+    // index: true,
   },
 
   ownerId: String,
 
-  content: mongoose.SchemaTypes.Mixed,
-
+  config: mongoose.SchemaTypes.Mixed,
   questions: [QuestionSchema],
 
-  startedAt: Date, // absolute timestamp when survey is voteable when first question answered
-
+  startedAt: {
+    type: Date, // absolute timestamp when survey is voteable when first question answered
+    // default: Date.now()
+  },
   completedAt: Date, // absolute timestamp when survey is voteable when first question answered
 
   activateAt: Date, // absolute timestamp when survey is voteable when first question answered
@@ -104,4 +61,5 @@ module.exports = {
   createSurveyModel: (title) => mongoose.model(title, SurveySchema),
   SurveyCollection: mongoose.model('Survey', SurveySchema),
   PendingVotesCollection: mongoose.model('PendingVotes', AnswerSchema),
+  QuestionsCollection: mongoose.model('Questions', QuestionSchema),
 }

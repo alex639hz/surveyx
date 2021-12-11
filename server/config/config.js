@@ -21,7 +21,24 @@ const config = {
   topicsNames: {
     keywordAlertTopic: 'keyword-alert',
     serviceGetStatusOfFailedTx: 'tx-failure',
+  },
+
+  QUESTION_TYPES: {
+    NUMERIC: "NUMERIC",
+    TEXT: "TEXT",
+    OPTION: "SINGLE_OPTION",
+    MULTI_OPTIONS: "MULTI_OPTIONS",
+  },
+
+  QUESTION_EVENTS: {
+    LESS_THEN_SETPOINT: "LESS_THEN_SETPOINT",
+    SELECT_FROM_STACK: "SELECT_FROM_STACK",
+
   }
+
 }
+
+
+
 
 module.exports = config;

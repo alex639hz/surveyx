@@ -1,53 +1,23 @@
 {
-  "title": "my survey main title",
-  "description": "my survey main description ",
+  "title": "my survey title",
+  "description": "my survey description ",
   "pages": [
     {
       "name": "page1",
+      "title": "my survey title",
+      "description": "my survey description",
       "elements": [
         {
-          "type": "text",
-          "name": "question1",
-          "title": "text input"
-        },
-        {
           "type": "boolean",
-          "name": "question9",
-          "title": "boolean"
-        },
-        {
-          "type": "dropdown",
-          "name": "question2",
-          "title": "dropdown",
+          "uid": "123",
+          "name": "question1",
+          "title": "text input",
           "choices": [
-            "item1",
-            "item2",
-            "item3"
-          ]
-        },
-        {
-          "type": "checkbox",
-          "name": "question3",
-          "title": "multi choice",
-          "choices": [
-            "item1",
-            "item2",
-            "item3"
-          ]
-        },
-        {
-          "type": "radiogroup",
-          "name": "question4",
-          "title": "single choice",
-          "choices": [
-            "item1",
-            "item2",
-            "item3"
+            "No",
+            "Yes"
           ]
         }
-      ],
-      "title": "my survey title ",
-      "description": "my survey description"
+      ]
     }
   ]
 }

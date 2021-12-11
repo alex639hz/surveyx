@@ -183,11 +183,13 @@ function verifyParticipation(filters = [], userProfile) {
 
 const verifyAnswer = (answer) => {
   const temp = {};
+  const { meta: metaConfig } = answer.question.config
+  const { value } = answer
   // return true
 
-  switch (answer.question.config.meta.event) {
+  switch (metaConfig.event) {
     case config.QUESTION_EVENTS.LESS_THEN_SETPOINT:
-      if (+answer.answer < answer.question.config.meta.setpoint)
+      if (+value < metaConfig.setpoint)
         console.log("EVENT-1 fired");
 
     case config.QUESTION_EVENTS.SELECT_FROM_STACK:
