@@ -3,11 +3,13 @@ const app = require("../server/express");
 const config = require("../server/config/config");
 const { User } = require('../server/modules/user/user.model');
 const {
-  SurveyCollection: Survey,
+  SurveyCollection,
   PendingVotesCollection
 } = require('../server/modules/survey/survey.model');
 const mongoose = require('mongoose');
 const surveyContent = require('./survey.json');
+
+
 
 // console.log(surveyContent)
 // 
@@ -27,11 +29,52 @@ const user = {
   }
 }
 
-// let surveys = [
-//   createSurvey("A", "US", 100, "word? word1 word2 word3"),
-//   createSurvey("A", "IL", 90, "word? word? word? word?"),
-// ]
+const generateQuestion = (
+  type,
+  content,
+  options,
+) => ({
+  type,
+  content,
+  options
+})
 
+const question1 = {
+  question: {
+    type: config.QUESTION_TYPES.NUMERIC,
+    text: "What is your age?",
+    config: {
+      min: 17,
+      max: 120,
+      step: 1,
+      meta: {
+        event: "LESS_THEN_SETPOINT",
+        setpoint: 16
+      }
+    },
+  },
+  answer: 5
+}
+
+const question2 = {
+  question: {
+    type: "options",
+    text: "Select colors",
+    config: {
+      items: [
+        "White",
+        "Black",
+        "Yello",
+        "Blue",
+      ],
+      meta: {
+        event: config.QUESTION_EVENTS.SELECT_FROM_STACK, //"SELECT_FROM_STACK",
+        stack: ["Black", "Yellow"]
+      }
+    },
+  },
+  answer: ["Blue"]
+}
 describe("Test survey module", () => {
 
   beforeAll(async () => {
@@ -51,8 +94,9 @@ describe("Test survey module", () => {
     config.mongooseInit(mongoose, config.mongoUris[0])
 
     await User.deleteMany();
-    await Survey.deleteMany();
+    await SurveyCollection.deleteMany();
     await PendingVotesCollection.deleteMany();
+    await SurveyCollection.deleteMany();
 
   });
 
@@ -103,21 +147,27 @@ describe("Test survey module", () => {
   describe("Test survey logic", () => {
     const surveyTitle = "my-survey-title";
     let surveyId = "";
+    let fetchedSurvey;
 
     test("create survey", async () => {
       const response = await request(app)
         .post("/api/survey")
         .set('Authorization', user.token)
         .send({
-          surveyId: surveyTitle,
+          title: "my new survey",
           content: surveyContent,
-
+          questions: [
+            question1.question,
+            question2.question,
+            // generateQuestion("numeric", "what is your age", { min: 0, max: 120 }),
+            // generateQuestion("option", "Are your agree...", { items: ["Yes", "No"] }),
+            // generateQuestion("options", "Select colors...", { items: ["White", "Black", "Red"] }),
+          ]
         })
 
       printIfError(response)
       expect(response.statusCode).toBe(201);
       surveyId = response.body.surveyId;
-      // console.log("[444]===>", surveyId)
 
     });
 
@@ -126,10 +176,9 @@ describe("Test survey module", () => {
         .get(`/api/survey/${surveyId}`)
         .set('Authorization', user.token)
 
-
       printIfError(response)
       expect(response.statusCode).toBe(200);
-      // console.log(response.body);
+      fetchedSurvey = response.body;
     });
 
     test("answer survey", async () => {
@@ -138,19 +187,19 @@ describe("Test survey module", () => {
         .set('Authorization', user.token)
         .send({
           surveyId: `${surveyId}`,
-          userId: `${surveyId}`,
-          questionId: `${surveyId}`,
-          answerType: 'text',
-          answerContent: 'my answer content',
+          // index: fetchedSurvey.content.pages[0].elements[0].uid,
+          answers: [
+            {
+              question: question1.question,
+              value: question1.answer
+            }
+          ]
         })
       printIfError(response)
       expect(response.statusCode).toBe(201);
       // console.log(response.body);
     });
-
-
   });
-
 })
 
 function printIfError(response, label = '') {
@@ -165,14 +214,4 @@ function printIfError(response, label = '') {
 
 function randomSuffix(prefix) {
   return '' + prefix + Math.floor(Math.random() * 10000)
-}
-
-const createSurvey = (community = '', country = '', score, body = '') => {
-  return {
-    title: randomSuffix("title-"),
-    community,
-    country,
-    score,
-    body: "my post body text includes word1 word2 word3.",
-  }
 }
