@@ -23,6 +23,15 @@ const config = {
     serviceGetStatusOfFailedTx: 'tx-failure',
   },
 
+  SURVEY_TYPES: {
+    SURVEY: "SURVEY",
+    PROGRAM: "PROGRAM",
+  },
+  STEP_TYPES: {
+    SURVEY: "SURVEY",
+    DIALOG: "DIALOG",
+  },
+
   QUESTION_TYPES: {
     NUMERIC: "NUMERIC",
     TEXT: "TEXT",
