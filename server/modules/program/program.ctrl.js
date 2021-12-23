@@ -6,6 +6,7 @@ const errorHandler = require('../../helpers/dbErrorHandler');
 const { verify } = require('jsonwebtoken');
 
 const config = require("../../config/config");
+const { Error } = require('mongoose');
 
 const create = async (req, res) => {
   const program = new ProgramCollection(req.body)
@@ -113,6 +114,37 @@ const list = async (req, res) => {
   }
 }
 
+const verifyStep = (step, solution) => {
+
+  switch (step.type) {
+    case config.STEP_TYPES.DIALOG:
+      const { items } = step.config;
+      if (!items.includes(solution)) return false;
+  }
+
+  switch (step.event.type) {
+    case config.STEP_EVENTS.COMPLETION:
+      console.log(`Event Payload: ${JSON.stringify(step.event.payload)}`);
+    default:
+  }
+}
+
+const completeStep = async (req, res) => {
+  try {
+    const { stepIndex, answer, step } = req.body
+
+    verifyStep(step, answer)
+
+    let program = req.program
+
+    res.json(program)
+  } catch (err) {
+    return res.status(400).json({
+      error: err
+    })
+  }
+}
+
 const update = async (req, res) => {
   try {
     let program = req.profile
@@ -142,7 +174,6 @@ const remove = async (req, res) => {
     })
   }
 }
-
 
 const answer = async (req, res) => {
 
@@ -179,24 +210,8 @@ function verifyParticipation(filters = [], userProfile) {
   return true;
 }
 
-const verifyAnswer = (answer) => {
-  const temp = {};
-  const { meta: metaConfig } = answer.question.config
-  const { value } = answer
-  // return true
-
-  switch (metaConfig.event) {
-    case config.QUESTION_EVENTS.LESS_THEN_SETPOINT:
-      if (+value < metaConfig.setpoint)
-        console.log("EVENT-1 fired");
-
-    case config.QUESTION_EVENTS.SELECT_FROM_STACK:
-
-    default:
-  }
-}
-
 module.exports = {
+  completeStep,
   create,
   programByID,
   answer,

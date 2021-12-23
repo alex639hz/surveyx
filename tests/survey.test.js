@@ -9,7 +9,7 @@ const {
 const mongoose = require('mongoose');
 const surveyContent = require('./survey.json');
 
-
+const { SURVEY_TYPES } = config
 
 // console.log(surveyContent)
 // 
@@ -69,7 +69,7 @@ const question2 = {
       ],
       meta: {
         event: config.QUESTION_EVENTS.SELECT_FROM_STACK, //"SELECT_FROM_STACK",
-        stack: ["Black", "Yellow"]
+        stack: ["Blue", "Yellow"]
       }
     },
   },
@@ -156,6 +156,7 @@ describe("Test survey module", () => {
         .send({
           title: "my new survey",
           content: surveyContent,
+          type: SURVEY_TYPES.SURVEY,
           questions: [
             question1.question,
             question2.question,
@@ -192,6 +193,9 @@ describe("Test survey module", () => {
             {
               question: question1.question,
               value: question1.answer
+            }, {
+              question: question2.question,
+              value: question2.answer
             }
           ]
         })
@@ -200,6 +204,7 @@ describe("Test survey module", () => {
       // console.log(response.body);
     });
   });
+
 })
 
 function printIfError(response, label = '') {

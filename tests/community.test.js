@@ -1,7 +1,7 @@
 const request = require("supertest");
 const app = require("../server/express");
 const config = require("../server/config/config");
-const { ProgramCollection } = require('../server/modules/program/program.model');
+const { Community: CommunityCollection } = require('../server/modules/community/community.model');
 const { User } = require('../server/modules/user/user.model');
 // const {
 //   SurveyCollection,
@@ -97,12 +97,11 @@ const step2 = {
   }
 }
 
-const program = {
+const community = {
   title: "new-program",
-  steps: [step1.step, step2.step]
 }
 
-describe("Test survey module", () => {
+describe("Test community module", () => {
 
   beforeAll(async () => {
     app.set('port', process.env.PORT || '3000');
@@ -120,7 +119,7 @@ describe("Test survey module", () => {
     })
     config.mongooseInit(mongoose, config.mongoUris[0])
 
-    await ProgramCollection.deleteMany();
+    await CommunityCollection.deleteMany();
     // await SurveyCollection.deleteMany();
     // await PendingVotesCollection.deleteMany();
     // await SurveyCollection.deleteMany();
@@ -171,46 +170,48 @@ describe("Test survey module", () => {
     });
   })
 
-  describe("Test /program APIs", () => {
-    let programId = "";
-    let fetchedProgram;
+  describe("Test /community APIs", () => {
+    let communityId = "";
+    let fetchedCommunity;
 
-    test("create program", async () => {
+    test("create community", async () => {
       const response = await request(app)
-        .post("/api/program")
+        .post("/api/community")
         .set('Authorization', user.token)
-        .send(program)
+        .send(community)
 
       printIfError(response)
       expect(response.statusCode).toBe(201);
-      programId = response.body.id;
+      communityId = response.body._id;
+      console.log("===554433", response.body)
 
     });
 
-    test("fetch program", async () => {
+    test("fetch community", async () => {
       const response = await request(app)
-        .get(`/api/program/${programId}`)
+        .get(`/api/community/${communityId}`)
         .set('Authorization', user.token)
 
       printIfError(response)
       expect(response.statusCode).toBe(200);
-      fetchedProgram = response.body;
-      // console.log("===54544", fetchedProgram)
+      fetchedCommunity = response.body.community;
+      console.log("===54544", fetchedCommunity)
     });
 
-    test("complete step", async () => {
-      const response = await request(app)
-        .post(`/api/program/complete/${programId}`)
-        .set('Authorization', user.token)
-        .send({
-          stepIndex: 0,
-          step: step1.step,
-          answer: step1.solution.answer,
-        })
-      printIfError(response)
-      expect(response.statusCode).toBe(200);
-      // console.log(response.body);
-    });
+    // test("complete step", async () => {
+    //   const response = await request(app)
+    //     .post(`/api/program/complete/${programId}`)
+    //     .set('Authorization', user.token)
+    //     .send({
+    //       stepIndex: 0,
+    //       step: step1.step,
+    //       answer: step1.solution.answer,
+    //     })
+    //   printIfError(response)
+    //   expect(response.statusCode).toBe(200);
+    //   // console.log(response.body);
+    // });
+
   });
 })
 

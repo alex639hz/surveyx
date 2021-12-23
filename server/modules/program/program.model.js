@@ -14,7 +14,7 @@ const StepSchema = new mongoose.Schema({
     enum: [...Object.keys(STEP_TYPES)]
   },
   text: { type: String },
-  complete: {
+  completed: {
     type: Boolean,
     default: false
   },
@@ -31,12 +31,18 @@ const ProgramSchema = new mongoose.Schema({
     // index: true,
   },
 
-  userId: { type: mongoose.Schema.ObjectId, ref: 'User' },
+  must: {
+    type: Boolean,
 
+  },
+
+  userId: { type: mongoose.Schema.ObjectId, ref: 'User' },
 
   config: mongoose.SchemaTypes.Mixed,
 
   steps: [StepSchema],
+
+  completions: [{}],
 
 }, { timestamps: true })
 

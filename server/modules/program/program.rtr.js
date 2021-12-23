@@ -17,4 +17,7 @@ router.route('')
 router.route('/:programId')
   .get(programCtrl.read)
 
+router.route('/complete/:programId')
+  .post(programCtrl.completeStep)
+
 module.exports = router;

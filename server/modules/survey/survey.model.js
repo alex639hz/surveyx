@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const crypto = require('crypto');
-const config = require('../../config/config');
-const { ObjectId } = require('mongodb');
+const { SURVEY_TYPES } = require('../../config/config');
 
 const AnswerSchema = new mongoose.Schema({
 
@@ -33,10 +32,21 @@ const QuestionSchema = new mongoose.Schema({
 
 const SurveySchema = new mongoose.Schema({
 
+  type: {
+    type: String,
+    default: "_SURVEY"
+  },
+
   title: {
     type: String,
     // unique: true,
     // index: true,
+  },
+
+  type: {
+    type: String,
+    enum: [...Object.keys(SURVEY_TYPES)],
+    default: SURVEY_TYPES.SURVEY
   },
 
   ownerId: String,
@@ -57,6 +67,8 @@ const SurveySchema = new mongoose.Schema({
 }, { timestamps: true })
 
 module.exports = {
+  SurveySchema,
+  QuestionSchema,
   createAnswerCollection: (title) => mongoose.model(title, AnswerSchema),
   createSurveyModel: (title) => mongoose.model(title, SurveySchema),
   SurveyCollection: mongoose.model('Survey', SurveySchema),
