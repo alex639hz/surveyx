@@ -1,9 +1,33 @@
 const request = require('request');
 const extend = require('lodash/extend');
 const config = require('../../config/config');
-const { Community } = require('./community.model');
+const {
+  Community,
+  MemberCollection
+} = require('./community.model');
 const errorHandler = require('../../helpers/dbErrorHandler');
 const { User } = require('../user/user.model');
+
+
+/** inject survey document into req.survey
+ * 
+ */
+const communityByID = async (req, res, next, id) => {
+  try {
+    let community = await Community.findById(id).lean()
+    if (!community)
+      return res.status('400').json({
+        error: "question not found"
+      })
+    req.community = { ...community }
+    next()
+    return community
+  } catch (err) {
+    return res.status('400').json({
+      error: "Could not retrieve question"
+    })
+  }
+}
 
 /** inject community document into req.community
  * 
@@ -48,9 +72,7 @@ const create = async (req, res) => {
   const community = new Community(req.body)
   try {
     await community.save()
-    return res.status(201).json({
-      message: "Community created successfully"
-    })
+    return res.status(201).json(community)
   } catch (err) {
     return res.status(400).json({
       error: errorHandler.getErrorMessage(err)
@@ -58,11 +80,9 @@ const create = async (req, res) => {
   }
 }
 
-
 const read = (req, res) => {
-  req.profile.hashed_password = undefined
-  req.profile.salt = undefined
-  return res.json(req.profile)
+  // TODO should senitize returned data 
+  return res.json(req.community)
 }
 
 const list = async (req, res) => {
@@ -133,6 +153,27 @@ const requestMembership = async (req, res) => {
   }
 }
 
+const requestMembershipV2 = async (req, res) => {
+  try {
+    let membership = await MemberCollection.create(
+      {
+        type: "community",
+        src: req.profile._id,
+        dest: req.body.dest,
+      },
+    );
+    res.json({
+      status: "OK",
+      message: "Waiting for approval"
+    })
+  } catch (err) {
+    return res.status(400).json({
+      error: errorHandler.getErrorMessage(err),
+      err
+    })
+  }
+}
+
 const approveMembership = async (req, res) => {
 
   try {
@@ -188,11 +229,13 @@ const approveMembership = async (req, res) => {
 module.exports = {
   create,
   communityByTitle,
+  communityByID,
   read,
   list,
   remove,
   update,
   requestMembership,
+  requestMembershipV2,
   approveMembership,
   isMember,
 }

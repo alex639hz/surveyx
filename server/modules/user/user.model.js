@@ -4,6 +4,8 @@ const config = require('../../config/config');
 
 const UserSchema = new mongoose.Schema({
 
+  communities: {}, //Record <communityId:object>
+
   email: {
     type: String,
     trim: true,

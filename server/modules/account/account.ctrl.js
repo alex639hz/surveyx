@@ -1,5 +1,5 @@
 const extend = require('lodash/extend');
-const { Account } = require('./account.model');
+const { Account, _createTx } = require('./account.model');
 // const utils = require('./account.util');
 const { Keyword } = require('../keyword/keyword.model');
 const errorHandler = require('../../helpers/dbErrorHandler');
@@ -49,85 +49,14 @@ const createTx = async (req, res) => {
   const raw = `${sender},${receiver},${amount},${title}`
   let accountSender;
 
-  // try to update sender account
-  try {
-    accountSender = await Account.findOneAndUpdate(
-      {
-        owner: sender,
-        balance: { $gte: amount },
-        outTxs: { $ne: raw }
-      },
-      {
-        $inc: { balance: -amount },
-        $addToSet: { outTxs: raw }
-      },
-      {
-        new: true,
-        lean: true,
-      }
-    )
-  }
-  catch (err) {
-    return res.status(500).json({
-      error: errorHandler.getErrorMessage(err)
-    })
-  }
-
-  // get failed tx error and generate response message
-  if (!accountSender) {
-    if (0) {
-      redisPub.publish(serviceGetStatusOfFailedTx, `${JSON.stringify("any data...")}`);
-
-      accountSender = await Account.findOne(
-        {
-          owner: sender,
-        },
-        {
-          balance: true,
-          txs: true,
-        },
-        {
-          lean: true,
-        }
-      )
-
-      const message = !accountSender ?
-        "sender account not fount" : accountSender.balance < amount ?
-          "Balance Failure" : accountSender.txs.includes(raw) ?
-            "tx already exist" : 'unknown tx failure';
-
-      return res.status(400).json({
-        message,
-        accountSender,
-      })
-    } else {
-      return res.status(400).json({
-        message: "sender account not found`",
-      })
-    }
-  }
-
-  //  update receiver account
-  const accountReceiver = await Account.findOneAndUpdate(
-    { owner: receiver },
-    {
-      $inc: { balance: +amount },
-      $addToSet: { inTxs: raw },
-    },
-    {
-      new: true,
-      lean: true,
-      upsert: true
-    },
-  )
-
-  return res.status(201).json({
-    message: "Tx created successfully!",
-    accountSender: accountSender || {},
-    accountReceiver: accountReceiver || {},
+  const result = await _createTx({
+    sender,
+    receiver,
+    amount,
+    raw
   })
 
-
+  return res.status(201).json({result})
 
 }
 
