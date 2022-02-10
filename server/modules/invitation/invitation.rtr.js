@@ -1,12 +1,12 @@
 var express = require('express');
 // var surveyCtrl = require('./user.ctrl');
-var surveyCtrl = require('./survey.ctrl');
+var inviteCtrl = require('./invitation.ctrl');
 var authCtrl = require('../auth/auth.ctrl');
 
 const router = express.Router()
 
-router.param('surveyId', surveyCtrl.surveyByID)
-router.param('questionId', surveyCtrl.questionByID)
+router.param('surveyId', inviteCtrl.surveyByID)
+router.param('questionId', inviteCtrl.questionByID)
 
 router.use(authCtrl.requireSignin);
 
@@ -17,10 +17,10 @@ router.use(authCtrl.requireSignin);
 
 
 router.route('')
-  .post(surveyCtrl.create)
+  .post(inviteCtrl.create)
 
 router.route('/:surveyId')
-  .post(surveyCtrl.answer)
-  .get(surveyCtrl.read)
+  .post(inviteCtrl.answer)
+  .get(inviteCtrl.read)
 
 module.exports = router;

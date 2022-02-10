@@ -1,5 +1,5 @@
 var express = require('express');
-var accountCtrl = require('./account.ctrl');
+var txCtrl = require('./tx.ctrl');
 var authCtrl = require('../auth/auth.ctrl');
 var userCtrl = require('../user/user.ctrl');
 var commCtrl = require('../community/community.ctrl');
@@ -17,15 +17,7 @@ router.route('')
     // authCtrl.requireSignin,
     // authCtrl.injectUserProfile,
     // commCtrl.isMember,
-    accountCtrl.create
-  )
-
-router.route('/tx')
-  .post(
-    // authCtrl.requireSignin,
-    // authCtrl.injectUserProfile,
-    // commCtrl.isMember,
-    accountCtrl.createTx
+    txCtrl.create
   )
 
 
@@ -33,21 +25,7 @@ router.route('')
   .get(
     // authCtrl.requireSignin,
     // authCtrl.injectUserProfile,
-    accountCtrl.read)
-
-// router.route('')
-//   .account(
-//     authCtrl.requireSignin,
-//     authCtrl.injectUserProfile,
-//     commCtrl.isMember,
-//     accountCtrl.create
-//   )
-
-// router.route('/:accountId/approve')
-//   .patch(
-//     authCtrl.requireSignin,
-//     authCtrl.injectUserProfile,
-//     authCtrl.isModerator,
-//     accountCtrl.approvePost)
+    txCtrl.getBalance
+  )
 
 module.exports = router;
