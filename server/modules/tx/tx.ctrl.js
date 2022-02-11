@@ -48,7 +48,7 @@ const create = async (req, res) => {
   const txSenderId = req.body.tx.senderId
 
   const senderAccount = await Tx.aggregate([
-    {
+    { // collect all sender txs (in and out) 
       $match: {
         $or: [
           { senderId: txSenderId },
@@ -56,14 +56,14 @@ const create = async (req, res) => {
         ]
       }
     },
-    {
+    { // squash all tx into a single summary document
       $group: {
         balance: {
           $sum: {
             $cond: {
               if: { $eq: ["$receiverId", txSenderId] },
-              then: "$amount",
-              else: { $multiply: ["$amount", -1] },
+              then: "$amount",  // inc balance for in_txs
+              else: { $multiply: ["$amount", -1] }, // dec balance for out_txs 
             }
           }
         },
