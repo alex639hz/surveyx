@@ -18,6 +18,8 @@
     "test:auth": "clear && ./node_modules/jest/bin/jest.js ./tests/auth.test.js --forceExit  --detectOpenHandles",
     "test:tx": "clear && ./node_modules/jest/bin/jest.js ./tests/tx.test.js --forceExit  --detectOpenHandles",
     "test:survey": "clear && ./node_modules/jest/bin/jest.js ./tests/survey.test.js --forceExit  --detectOpenHandles",
+    "test:program": "clear && ./node_modules/jest/bin/jest.js ./tests/program.test.js --forceExit  --detectOpenHandles",
+    "test:community": "clear && ./node_modules/jest/bin/jest.js ./tests/community.test.js --forceExit  --detectOpenHandles",
     "test:account": "clear && ./node_modules/jest/bin/jest.js ./tests/account.test.js --forceExit  --detectOpenHandles",
     "test:account:alert": "clear &&   ./node_modules/jest/bin/jest.js ./tests/account.test.js --forceExit  --detectOpenHandles",
     "test:notification": "clear && concurrently --kill-others \"npm run alert-service\" \"npm run test\"",
