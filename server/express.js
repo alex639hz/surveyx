@@ -10,12 +10,13 @@ const helmet = require('helmet');
 
 const authRouter = require('./modules/auth/auth.rtr');
 const userRouter = require('./modules/user/user.rtr');
-const postRouter = require('./modules/post/post.rtr');
-const communityRouter = require('./modules/community/community.rtr');
-const wordRouter = require('./modules/keyword/keywords.rtr');
-const accountRouter = require('./modules/account/account.rtr');
-const surveyRouter = require('./modules/survey/survey.rtr');
-const programRouter = require('./modules/program/program.rtr');
+const txRouter = require('./modules/tx/tx.rtr');
+// const postRouter = require('./modules/post/post.rtr');
+// const communityRouter = require('./modules/community/community.rtr');
+// const wordRouter = require('./modules/keyword/keywords.rtr');
+// const accountRouter = require('./modules/account/account.rtr');
+// const surveyRouter = require('./modules/survey/survey.rtr');
+// const programRouter = require('./modules/program/program.rtr');
 
 const swaggerUi = require("swagger-ui-express");
 
@@ -31,14 +32,15 @@ app.use(cors())
 app.use(express.static(path.join(__dirname, 'public')))
 
 // mount routes
-app.use('/api/user', userRouter);
-app.use('/api/survey', surveyRouter);
-app.use('/api/program', programRouter);
 app.use('/api/auth', authRouter);
-app.use('/api/post', postRouter);
-app.use('/api/account', accountRouter);
-app.use('/api/community', communityRouter);
-app.use('/api/keyword', wordRouter);
+app.use('/api/user', userRouter);
+app.use('/api/tx', txRouter);
+// app.use('/api/survey', surveyRouter);
+// app.use('/api/program', programRouter);
+// app.use('/api/post', postRouter);
+// app.use('/api/account', accountRouter);
+// app.use('/api/community', communityRouter);
+// app.use('/api/keyword', wordRouter);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(require('./docs')));
 
 app.use('*', (req, res) => {

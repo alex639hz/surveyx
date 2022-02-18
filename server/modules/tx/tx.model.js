@@ -1,10 +1,16 @@
 const mongoose = require('mongoose');
+const { v4: uuidv4 } = require('uuid');
 
 /** rawAccountSchema, the signed tx as received from the user  
  * 
  */
-const TokenSchema = new mongoose.Schema({
-
+const TxSchema = new mongoose.Schema({
+  _id: {
+    type: String,
+    index: true,
+    unique: true,
+    default: uuidv4()
+  },
   senderId: {
     type: String,
     index: true,
@@ -18,10 +24,10 @@ const TokenSchema = new mongoose.Schema({
 
 }, {
   timestamps: true,
-  collection: 'Token',
+  collection: 'Tx',
 })
 
 
 module.exports = {
-  Account: mongoose.model('Token', TokenSchema)
+  Tx: mongoose.model('Tx', TxSchema)
 }

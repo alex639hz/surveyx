@@ -12,6 +12,13 @@ const router = express.Router()
 // const isMember = function (req, res, next) { commCtrl.isMember(req, res, next, req.body.account.community) }
 
 
+router.route('/initialize')
+  .post(
+    // authCtrl.requireSignin,
+    // authCtrl.injectUserProfile,
+    // commCtrl.isMember,
+    txCtrl.createInitial
+  )
 router.route('')
   .post(
     // authCtrl.requireSignin,

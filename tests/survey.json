@@ -1,0 +1,23 @@
+{
+  "title": "my survey title",
+  "description": "my survey description ",
+  "pages": [
+    {
+      "name": "page1",
+      "title": "my survey title",
+      "description": "my survey description",
+      "elements": [
+        {
+          "type": "boolean",
+          "uid": "123",
+          "name": "question1",
+          "title": "text input",
+          "choices": [
+            "No",
+            "Yes"
+          ]
+        }
+      ]
+    }
+  ]
+}

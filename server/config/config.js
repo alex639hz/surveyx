@@ -11,7 +11,7 @@ const config = {
   port: process.env.PORT || 3000,
   jwtSecret: process.env.JWT_SECRET || "YOUR_secret_key",
   mongoUris: [
-    `mongodb://${(process.env.IP || 'localhost')}:${(process.env.MONGO_PORT || '27017')}/SURVEYX`,
+    `mongodb://${(process.env.IP || 'localhost')}:${(process.env.MONGO_PORT || '27018')}/SURVEYX-TEST`,
   ],
 
   mongooseInit,

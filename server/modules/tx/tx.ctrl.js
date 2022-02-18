@@ -4,6 +4,7 @@ const { Tx } = require('./tx.model');
 const { Keyword } = require('../keyword/keyword.model');
 const errorHandler = require('../../helpers/dbErrorHandler');
 const { serviceGetStatusOfFailedTx } = require('../../config/config').topicsNames
+const { v4: uuidv4 } = require('uuid');
 
 // const Redis = require('ioredis');
 // const redisPub = new Redis()
@@ -25,64 +26,7 @@ const accountByID = async (req, res, next, id) => {
 }
 
 const createInitial = async (req, res) => {
-  const account = new Tx(req.body.account)
-
-  try { await account.save() }
-  catch (err) {
-    return res.status(400).json({
-      error: errorHandler.getErrorMessage(err)
-    })
-  }
-
-  return res.status(201).json({
-    message: "Tx created successfully!",
-    account
-  })
-
-}
-
-// https://stackoverflow.com/questions/47250116/find-balance-from-debit-and-credit-entries-mongodb
-// https://docs.mongodb.com/manual/reference/operator/aggregation/cond/
-// https://stackoverflow.com/questions/49047239/mongodb-multiple-match-conditions-and-return-documents-with-common-name
-const create = async (req, res) => {
-  const txSenderId = req.body.tx.senderId
-
-  const senderAccount = await Tx.aggregate([
-    { // collect all sender txs (in and out) 
-      $match: {
-        $or: [
-          { senderId: txSenderId },
-          { receiverId: txSenderId },
-        ]
-      }
-    },
-    { // squash all tx into a single summary document
-      $group: {
-        balance: {
-          $sum: {
-            $cond: {
-              if: { $eq: ["$receiverId", txSenderId] },
-              then: "$amount",  // inc balance for in_txs
-              else: { $multiply: ["$amount", -1] }, // dec balance for out_txs 
-            }
-          }
-        },
-        outputTx: {
-          $sum: {
-            $cond: {
-              if: { $eq: ["$receiverId", txSenderId] },
-              then: 0,
-              else: 1,
-            }
-          }
-        },
-      }
-    }
-  ])
-
-
-
-  const tx = new Tx(req.body.tx)
+  const tx = new Tx(req.body.initialTx)
 
   try { await tx.save() }
   catch (err) {
@@ -95,6 +39,102 @@ const create = async (req, res) => {
     message: "Tx created successfully!",
     tx
   })
+
+}
+
+// https://stackoverflow.com/questions/47250116/find-balance-from-debit-and-credit-entries-mongodb
+// https://docs.mongodb.com/manual/reference/operator/aggregation/cond/
+// https://stackoverflow.com/questions/49047239/mongodb-multiple-match-conditions-and-return-documents-with-common-name
+const create = async (req, res) => {
+  const txSenderId = req.body.tx.senderId
+  const txReceiverId = req.body.tx.receiverId
+
+  // console.log('req.body ',req.body)
+  // console.log('txSenderId ',txSenderId)
+
+  const senderAccountState = (await Tx.aggregate([
+    { // collect all sender txs (in and out) 
+      $match: {
+        $or: [
+          { senderId: txSenderId },
+          { receiverId: txSenderId },
+        ]
+      }
+    },
+    { // squash all tx into a single summary document
+      $group: {
+        _id: uuidv4(),
+
+        balance: {
+          $sum: {
+            $cond: {
+              if: { $eq: ["$receiverId", txSenderId] },
+              then: "$amount",  // inc balance for in_txs
+              else: { $multiply: ["$amount", -1] }, // dec balance for out_txs 
+            }
+          }
+        },
+        outTx: {
+          $sum: {
+            $cond: {
+              if: { $eq: ["$receiverId", txSenderId] },
+              then: 0,
+              else: 1,
+            }
+          }
+        },
+        inTx: {
+          $sum: {
+            $cond: {
+              if: { $eq: ["$senderId", txSenderId] },
+              then: 0,
+              else: 1,
+            }
+          }
+        }
+      },
+    },
+    {
+      $addFields: {
+        senderId: { $literal: txSenderId },
+        receiverId: { $literal: `${txReceiverId}` },
+      },
+    },
+    // { $merge: { into: "Tx" } } // add new document into existing collection
+  ]))[0]
+  
+  console.log('req.body.tx: ', req.body.tx)
+  console.log('senderAccountState: ', senderAccountState)
+  
+  const balanceDiff = senderAccountState.balance - req.body.tx.amount
+  if (balanceDiff >=0 ) {
+    senderAccountState.amount = balanceDiff;
+
+    // const newTx = await Tx.create(senderAccountState)
+    const newTx = await Tx.create(senderAccountState)
+
+    console.log('newTx: ', newTx)
+  } else {
+    console.log('Failed to tx due to low balance')
+  }
+
+
+
+  try {
+    // const tx = await Tx.create(req.body.tx)
+    // console.log('tx:', newTx[0])
+    return res.status(201).json({
+      message: "Tx created successfully!",
+      tx: senderAccountState[0]
+    })
+  }
+  catch (err) {
+    return res.status(400).json({
+      error: err
+    })
+  }
+
+
 }
 
 const createX = async (req, res) => {
@@ -316,95 +356,15 @@ const remove = async (req, res) => {
   }
 }
 
-const approveTx = async (req, res) => {
-  try {
-    const result = await Tx.findOneAndUpdate({
-      _id: req.account._id,
-      status: "pending",
-    }, {
-      status: "approved",
-    }, {
-      new: true,
-      lean: true
-    })
-
-    if (!result) {
-      return res.status(400).json({
-        error: 'Cannot approve account: ' + req.account._id
-      })
-    }
-
-    res.status(200).json({ result })
 
 
-  } catch (err) {
-    return res.status(400).json({
-      error: errorHandler.getErrorMessage(err)
-    })
-  }
-}
-
-/**
- * 1 verify account signature of content (ie. account instructions)
- * 2 verify the account content ie. balance
- * 3 store account as document in db
- */
-const sendTx = async (req, res) => {
-  const sender = "";
-  const receiver = "";
-  const hash = "";
-  const prevHash = "";
-  const title = "";
-  const data = "";
-  const amount = 0;
-  const fee = 0;
-
-  const result = await Tx.aggregate([
-    {
-      $match: {
-        receiver: "1001"
-      },
-    },
-    {
-      $group: {
-        _id: null,
-        total: { $sum: "$amount" },
-        count: { $sum: 1 }
-      }
-    },
-    {
-      $match: {
-        // check sender account balance
-        total: { $gte: 10 }
-      },
-    },
-  ]);
-
-  /**
-   * https://docs.mongodb.com/manual/reference/operator/aggregation/match/#perform-a-count
-   */
-
-  const account = new Tx({
-    userTxBody,
-    userTxSignature,
-    hash,
-  })
-
-}
-
-/**
- * 1 get all accounts where receiver is account.sender 
- * 2 return calculated account income balance
- */
 const getBalance = async (req, res) => {
-  //  
-  // 
-  const arr = [10, 20, 30]
+
 }
 
 module.exports = {
   create,
-  createTx,
+  // createTx,
   createInitial,
   accountByID,
   read,
@@ -412,7 +372,7 @@ module.exports = {
   remove,
   listByCommunity,
   listFeed,
-  approveTx,
-  sendTx,
+  // approveTx,
+  // sendTx,
   getBalance,
 }
