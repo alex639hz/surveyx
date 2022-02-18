@@ -33,7 +33,8 @@ router.route('')
   .get(
     // authCtrl.requireSignin,
     // authCtrl.injectUserProfile,
-    accountCtrl.read)
+    accountCtrl.read
+  )
 
 // router.route('')
 //   .account(

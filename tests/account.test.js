@@ -5,7 +5,7 @@ const { User } = require('../server/modules/user/user.model');
 const { Keyword } = require('../server/modules/keyword/keyword.model');
 const { Community } = require('../server/modules/community/community.model');
 const { Post } = require('../server/modules/post/post.model');
-const { Account } = require('../server/modules/tx/account.model');
+const { Account } = require('../server/modules/account/account.model');
 const mongoose = require('mongoose');
 
 /** user object:

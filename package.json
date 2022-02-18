@@ -15,6 +15,8 @@
     "nodemon": "node ./node_modules/nodemon/bin/nodemon.js ",
     "start": "clear && concurrently --kill-others \"npm run service:alert\" \"npm run service:app\"",
     "test": "clear && ./node_modules/jest/bin/jest.js ./tests/main.test.js --forceExit  --detectOpenHandles",
+    "test:auth": "clear && ./node_modules/jest/bin/jest.js ./tests/auth.test.js --forceExit  --detectOpenHandles",
+    "test:tx": "clear && ./node_modules/jest/bin/jest.js ./tests/tx.test.js --forceExit  --detectOpenHandles",
     "test:survey": "clear && ./node_modules/jest/bin/jest.js ./tests/survey.test.js --forceExit  --detectOpenHandles",
     "test:program": "clear && ./node_modules/jest/bin/jest.js ./tests/program.test.js --forceExit  --detectOpenHandles",
     "test:community": "clear && ./node_modules/jest/bin/jest.js ./tests/community.test.js --forceExit  --detectOpenHandles",
@@ -52,7 +54,8 @@
     "request": "^2.88.2",
     "secp256k1": "^4.0.2",
     "swagger-jsdoc": "^6.1.0",
-    "swagger-ui-express": "^4.1.6"
+    "swagger-ui-express": "^4.1.6",
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
     "cross-env": "^7.0.3",
